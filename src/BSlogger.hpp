@@ -28,6 +28,11 @@
 #define LOG_INIT_CLOG() logger log(std::clog, __PRETTY_FUNCTION__)
 #define LOG_INIT_CUSTOM(X) logger log( (X), __PRETTY_FUNCTION__)
 
+#define LOG_RVALUE() logger(std::cout, __PRETTY_FUNCTION__)
+#define LOG_LVALUE auto _log
+#define LOG() this->_log(LOG_INFO, __PRETTY_FUNCTION__, false)
+#define _LOG(x) this->_log(x, __PRETTY_FUNCTION__, false)
+
 #ifdef BSLOG_NO_COLORS
 
 #define BSLOG_TIME    "[ TIME    ]"
@@ -84,6 +89,7 @@ public:
   template<typename T>
   friend logger& operator<<(logger& l, const T& s);
   inline logger& operator()(unsigned ll);
+  inline logger& operator()(unsigned ll, std::string n, bool);
   inline void add_snapshot(std::string n, bool quiet = true) {
     time_t now; time(&now); _snaps.push_back(now);
     _snap_ns.push_back(n);
@@ -95,8 +101,11 @@ public:
   inline void time_since_last_snap();
   inline void time_since_snap(std::string);
   inline void flush() { _fac.flush(); }
+  friend std::string prep_level(unsigned l);
   friend std::string prep_level(logger& l);
+  
   friend std::string prep_time(logger& l);
+  friend std::string prep_name(std::string& name);
   friend std::string prep_name(logger& l);
   static unsigned & _loglevel () {
     static unsigned _ll_internal = LOG_DEFAULT; return _ll_internal;
@@ -117,6 +126,9 @@ private:
 inline std::string prep_level(logger& l);
 inline std::string prep_time(logger& l);
 inline std::string prep_name(logger& l);
+
+inline std::string prep_name(std::string& name);
+inline std::string prep_level(unsigned l);
 
 //unsigned logger::_loglevel = LOG_DEFAULT;
 
@@ -163,9 +175,19 @@ logger& logger::operator()(unsigned ll) {
   return *this;
 }
 
-std::string prep_level(logger& l)
+logger& logger::operator()(unsigned ll, std::string n, bool) {
+	_message_level = ll;
+	
+	//ignore message level
+	_fac << prep_level(ll) << prep_time(*this) <<
+         prep_name(n) << ": ";
+
+  return *this;
+}
+
+inline std::string prep_level(unsigned l)
 {
-  switch (l._message_level)
+  switch (l)
   {
   case LOG_ERR:
     return BSLOG_ERROR; break;
@@ -183,7 +205,14 @@ std::string prep_level(logger& l)
   return "";
 }
 
-std::string prep_time(logger& l)
+inline std::string prep_level(logger& l)
+{
+  return prep_level(l._message_level);
+}
+
+
+
+inline std::string prep_time(logger& l)
 {
   time(&l._now);
   struct tm * t;
@@ -208,9 +237,14 @@ std::string prep_time(logger& l)
   return ret;
 }
 
-std::string prep_name(logger& l)
+inline std::string prep_name(logger& l)
 {
-  return "[ " + l._name + " ]";
+  return prep_name(l._name);
+}
+
+inline std::string prep_name(std::string& l)
+{
+  return "[ " + l + " ]";
 }
 
 void logger::time_since_start()
