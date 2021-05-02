@@ -29,9 +29,9 @@
 #define LOG_INIT_CUSTOM(X) logger log( (X), __PRETTY_FUNCTION__)
 
 #define LOG_RVALUE() logger(std::cout, __PRETTY_FUNCTION__)
-#define LOG_LVALUE auto _log
-#define LOG() this->_log(LOG_INFO, __PRETTY_FUNCTION__, false)
-#define _LOG(x) this->_log(x, __PRETTY_FUNCTION__, false)
+#define LOG_LVALUE logger ___log
+#define LOG() this->___log(LOG_INFO, __PRETTY_FUNCTION__, false)
+#define _LOG(x) this->___log(x, __PRETTY_FUNCTION__, false)
 
 #ifdef BSLOG_NO_COLORS
 
