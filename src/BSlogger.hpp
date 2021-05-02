@@ -30,8 +30,9 @@
 
 #define LOG_RVALUE() logger(std::cout, __PRETTY_FUNCTION__)
 #define LOG_LVALUE logger ___log
-#define LOG() this->___log(LOG_INFO, __PRETTY_FUNCTION__, false)
-#define _LOG(x) this->___log(x, __PRETTY_FUNCTION__, false)
+#define LOG(x) _LOG() << x << "\n";
+#define _LOG() this->___log(LOG_INFO, __PRETTY_FUNCTION__, false)
+#define __LOG(x) this->___log(x, __PRETTY_FUNCTION__, false)
 
 #ifdef BSLOG_NO_COLORS
 
